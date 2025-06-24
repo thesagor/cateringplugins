@@ -1,10 +1,27 @@
 <?php
 /*
-Plugin Name: Catering Booking Request (No Payment)
+Plugin Name: Catering Booking Request
 Description: Converts WooCommerce checkout into a booking request form by hiding payment methods and customizing checkout fields/buttons.
-Version: 1.5
-Author: Sagor
+Version: 1.6
+Author: Sagor Ahmed
 */
+
+// GitHub Updater
+require plugin_dir_path(__FILE__) . 'plugin-update-checker/plugin-update-checker.php';
+$updateChecker = Puc_v4_Factory::buildUpdateChecker(
+    'https://github.com/YOUR_GITHUB_USERNAME/catering-booking-request/',
+    __FILE__,
+    'catering-booking-request'
+);
+$updateChecker->getVcsApi()->enableReleaseAssets();
+
+// Remove "Rechnung" and set email field placeholder
+add_filter('woocommerce_checkout_fields', function ($fields) {
+    $fields['billing']['billing_email']['label'] = 'E-Mail-Adresse';
+    $fields['billing']['billing_email']['placeholder'] = 'E-Mail-Adresse';
+    unset($fields['billing']['billing_state']); // Remove Bundesland
+    return $fields;
+});
 
 // Change checkout button to "Anfrage senden"
 add_filter('woocommerce_order_button_text', function () {
@@ -19,23 +36,23 @@ add_filter('woocommerce_proceed_to_checkout_text', function () {
     return 'Anfragen';
 });
 
-// Add custom checkout fields: Datum (date picker) and Uhrzeit (time picker) outside billing
+// Add custom checkout fields (event date and optional note)
 add_action('woocommerce_after_order_notes', function ($checkout) {
-    echo '<div class="custom-booking-fields"><h3>Event Informationen</h3>';
+    echo '<div class="custom-booking-fields">';
 
     woocommerce_form_field('event_date', [
-        'type'     => 'date',
-        'class'    => ['form-row-first'],
-        'label'    => 'Datum',
-        'required' => true,
+        'type'        => 'date',
+        'class'       => ['form-row-first'],
+        'placeholder' => 'Datum',
+        'required'    => true,
     ], $checkout->get_value('event_date'));
 
-    woocommerce_form_field('event_time', [
-        'type'     => 'time',
-        'class'    => ['form-row-last'],
-        'label'    => 'Uhrzeit',
-        'required' => true,
-    ], $checkout->get_value('event_time'));
+    woocommerce_form_field('custom_notes', [
+        'type'        => 'textarea',
+        'class'       => ['form-row-wide'],
+        'placeholder' => 'Notiz (optional)',
+        'required'    => false,
+    ], $checkout->get_value('custom_notes'));
 
     echo '</div>';
 });
@@ -45,15 +62,15 @@ add_action('woocommerce_checkout_update_order_meta', function ($order_id) {
     if (!empty($_POST['event_date'])) {
         update_post_meta($order_id, 'event_date', sanitize_text_field($_POST['event_date']));
     }
-    if (!empty($_POST['event_time'])) {
-        update_post_meta($order_id, 'event_time', sanitize_text_field($_POST['event_time']));
+    if (!empty($_POST['custom_notes'])) {
+        update_post_meta($order_id, 'custom_notes', sanitize_textarea_field($_POST['custom_notes']));
     }
 });
 
 // Display fields in admin order details
 add_action('woocommerce_admin_order_data_after_billing_address', function ($order) {
     echo '<p><strong>Datum:</strong> ' . get_post_meta($order->get_id(), 'event_date', true) . '</p>';
-    echo '<p><strong>Uhrzeit:</strong> ' . get_post_meta($order->get_id(), 'event_time', true) . '</p>';
+    echo '<p><strong>Notiz:</strong> ' . get_post_meta($order->get_id(), 'custom_notes', true) . '</p>';
 });
 
 // Show fields in email
@@ -62,27 +79,14 @@ add_filter('woocommerce_email_order_meta_fields', function ($fields, $sent_to_ad
         'label' => 'Datum',
         'value' => get_post_meta($order->get_id(), 'event_date', true),
     ];
-    $fields['uhrzeit'] = [
-        'label' => 'Uhrzeit',
-        'value' => get_post_meta($order->get_id(), 'event_time', true),
+    $fields['notiz'] = [
+        'label' => 'Notiz',
+        'value' => get_post_meta($order->get_id(), 'custom_notes', true),
     ];
     return $fields;
 }, 10, 3);
 
-add_action('woocommerce_after_order_notes', function ($checkout) {
-    echo '<div class="custom-booking-fields-notes">';
-
-    woocommerce_form_field('custom_notes', [
-        'type'     => 'textarea',
-        'class'    => ['form-row-wide'],
-        'label'    => 'Notiz',
-        'required' => false,
-    ], $checkout->get_value('custom_notes'));
-
-    echo '</div>';
-});
-
-
+// JS adjustments for button labels and date picker behavior
 add_action('wp_footer', function () {
     if (is_checkout()) {
         echo '<script>
@@ -92,13 +96,14 @@ add_action('wp_footer', function () {
                     btn.value = "Anfrage senden";
                     btn.dataset.value = "Anfrage senden";
                 }
+                const dateField = document.querySelector("input[name=event_date]");
+                if (dateField) {
+                    dateField.addEventListener("click", () => dateField.showPicker?.());
+                }
             });
         </script>';
     }
 });
-
-
-
 
 add_action('wp_footer', function () {
     if (is_cart()) {
@@ -113,7 +118,6 @@ add_action('wp_footer', function () {
     }
 });
 
-
 add_action('wp_footer', function () {
     if (is_cart() || is_checkout()) {
         echo '<script>
@@ -123,19 +127,16 @@ add_action('wp_footer', function () {
                 if (el && el.textContent.includes("Jetzt zahlen")) {
                     el.textContent = "Anfragen";
                 } else {
-                    // Try again in 300ms
                     setTimeout(waitForProceedText, 300);
                 }
             }
-
             waitForProceedText();
         });
         </script>';
     }
 });
 
-
-
+// Load custom CSS
 add_action('wp_enqueue_scripts', function () {
     if (is_checkout()) {
         wp_enqueue_style(
@@ -146,8 +147,3 @@ add_action('wp_enqueue_scripts', function () {
         );
     }
 });
-
-
-
-
-
