@@ -6,14 +6,15 @@ Version: 1.6
 Author: Sagor Ahmed
 */
 
-// GitHub Updater
+/* GitHub Updater
 require plugin_dir_path(__FILE__) . 'plugin-update-checker/plugin-update-checker.php';
 $updateChecker = Puc_v4_Factory::buildUpdateChecker(
-    'https://github.com/YOUR_GITHUB_USERNAME/catering-booking-request/',
+    'https://github.com/thesagor/cateringplugins',
     __FILE__,
     'catering-booking-request'
 );
 $updateChecker->getVcsApi()->enableReleaseAssets();
+*/
 
 // Remove "Rechnung" and set email field placeholder
 add_filter('woocommerce_checkout_fields', function ($fields) {

@@ -5,3 +5,11 @@ div#payment {
 div#text_block-5-479 {
     display: none !important;
 }
+
+.woocommerce-checkout .woocommerce-form-coupon-toggle {
+    display: none !important;
+}
+
+#order_review_heading {
+    display: none;
+}
