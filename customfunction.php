@@ -6,15 +6,7 @@ Version: 1.6
 Author: Sagor Ahmed
 */
 
-/* GitHub Updater
-require plugin_dir_path(__FILE__) . 'plugin-update-checker/plugin-update-checker.php';
-$updateChecker = Puc_v4_Factory::buildUpdateChecker(
-    'https://github.com/thesagor/cateringplugins',
-    __FILE__,
-    'catering-booking-request'
-);
-$updateChecker->getVcsApi()->enableReleaseAssets();
-*/
+
 
 // Remove "Rechnung" and set email field placeholder
 add_filter('woocommerce_checkout_fields', function ($fields) {
@@ -39,7 +31,7 @@ add_filter('woocommerce_proceed_to_checkout_text', function () {
 
 // Add custom checkout fields (event date and optional note)
 add_action('woocommerce_after_order_notes', function ($checkout) {
-    echo '<div class="custom-booking-fields">';
+    echo '<div class="custom-booking-fields hide">';
 
     woocommerce_form_field('event_date', [
         'type'        => 'date',
