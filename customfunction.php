@@ -29,24 +29,19 @@ add_filter('woocommerce_proceed_to_checkout_text', function () {
     return 'Anfragen';
 });
 
-// Add custom checkout fields (event date and optional note)
+/*// Add custom checkout fields (event date and optional note)
 add_action('woocommerce_after_order_notes', function ($checkout) {
     echo '<div class="custom-booking-fields hide">';
 
-    /*woocommerce_form_field('event_date', [
+   woocommerce_form_field('event_date', [
         'type'        => 'date',
-        'class'       => ['form-row-first'],
-        'placeholder' => 'Datum',
-        'required'    => true,
-    ], $checkout->get_value('event_date'));*/
-
-    woocommerce_form_field('event_date', [
-        'type'     => 'date',
-        'class'    => ['form-row-first'],
-        'label'    => 'Eventdatum', // ✅ label added
+        'class'       => ['form-row-first','eventdate'],
+        'label'    => 'Eventdatum',
         'placeholder' => '',
-        'required' => true,
+        'required'    => true,
     ], $checkout->get_value('event_date'));
+
+
 
 
     woocommerce_form_field('custom_notes', [
@@ -57,7 +52,23 @@ add_action('woocommerce_after_order_notes', function ($checkout) {
     ], $checkout->get_value('custom_notes'));
 
     echo '</div>';
+});*/
+
+add_action('woocommerce_after_order_notes', function () {
+    echo '<div class="custom-booking-fields"><div class="form-row form-row-wide validate-required" id="event_date_field" data-priority="3">
+        <span class="woocommerce-input-wrapper">
+            <input type="date" class="input-text " name="event_date" id="event_date" placeholder=" " required />
+            <label for="event_date" class="required_field">Eventdatum&nbsp;<span class="required" aria-hidden="true">*</span></label>
+        </span>
+    </div>';
+
+    echo '<div class="form-row form-row-wide" id="custom_notes_field">
+        <span class="woocommerce-input-wrapper">
+            <textarea name="custom_notes" class="input-text" placeholder="Notiz (optional)"></textarea>
+        </span>
+    </div></div>';
 });
+
 
 // Save the custom fields to the order
 add_action('woocommerce_checkout_update_order_meta', function ($order_id) {
