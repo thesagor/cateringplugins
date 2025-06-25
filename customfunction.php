@@ -33,12 +33,21 @@ add_filter('woocommerce_proceed_to_checkout_text', function () {
 add_action('woocommerce_after_order_notes', function ($checkout) {
     echo '<div class="custom-booking-fields hide">';
 
-    woocommerce_form_field('event_date', [
+    /*woocommerce_form_field('event_date', [
         'type'        => 'date',
         'class'       => ['form-row-first'],
         'placeholder' => 'Datum',
         'required'    => true,
+    ], $checkout->get_value('event_date'));*/
+
+    woocommerce_form_field('event_date', [
+        'type'     => 'date',
+        'class'    => ['form-row-first'],
+        'label'    => 'Eventdatum', // ✅ label added
+        'placeholder' => '',
+        'required' => true,
     ], $checkout->get_value('event_date'));
+
 
     woocommerce_form_field('custom_notes', [
         'type'        => 'textarea',
@@ -111,23 +120,7 @@ add_action('wp_footer', function () {
     }
 });
 
-add_action('wp_footer', function () {
-    if (is_cart() || is_checkout()) {
-        echo '<script>
-        document.addEventListener("DOMContentLoaded", function () {
-            function waitForProceedText() {
-                const el = document.querySelector(".proceed-inner");
-                if (el && el.textContent.includes("Jetzt zahlen")) {
-                    el.textContent = "Anfragen";
-                } else {
-                    setTimeout(waitForProceedText, 300);
-                }
-            }
-            waitForProceedText();
-        });
-        </script>';
-    }
-});
+
 
 // Load custom CSS
 add_action('wp_enqueue_scripts', function () {
